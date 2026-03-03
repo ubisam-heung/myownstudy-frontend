@@ -19,11 +19,3 @@ npm dev
 ```bash
 npm build
 ```
-
-## ESLint로 코드 린트
-
-```bash
-npm lint
-```
-
----
