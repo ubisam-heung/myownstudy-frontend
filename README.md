@@ -5,25 +5,25 @@
 ## 프로젝트 설정
 
 ```bash
-pnpm install
+npm install
 ```
 
 ## 개발 서버 실행
 
 ```bash
-pnpm dev
+npm dev
 ```
 
 ## 타입 체크 및 프로덕션 빌드
 
 ```bash
-pnpm build
+npm build
 ```
 
 ## ESLint로 코드 린트
 
 ```bash
-pnpm lint
+npm lint
 ```
 
 ---
