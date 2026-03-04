@@ -20,7 +20,9 @@
             image="https://cdn.vuetifyjs.com/docs/images/one/create/feature.png"
             prepend-icon="mdi-rocket-launch-outline"
             rounded="lg"
+            style="cursor:pointer"
             variant="tonal"
+            @click="goToHello"
           >
             <template #image>
               <v-img position="top right" />
@@ -28,13 +30,13 @@
 
             <template #title>
               <h2 class="text-h5 font-weight-bold">
-                Get started
+                Hello 페이지로 이동
               </h2>
             </template>
 
             <template #subtitle>
               <div class="text-subtitle-1">
-                Change this page by updating <v-kbd>{{ `<HelloWorld />` }}</v-kbd> in <v-kbd>components/HelloWorld.vue</v-kbd>.
+                해당 칸을 누를 시 Hello 페이지로 이동합니다.
               </div>
             </template>
           </v-card>
@@ -61,6 +63,13 @@
 </template>
 
 <script setup lang="ts">
+  import { useRouter } from 'vue-router'
+
+  const router = useRouter()
+  function goToHello () {
+    router.push({ path: '/hello' })
+  }
+
   const links = [
     {
       href: 'https://vuetifyjs.com/',
