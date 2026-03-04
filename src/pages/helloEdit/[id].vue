@@ -1,7 +1,6 @@
 <script>
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
-import { ref } from "vue";
 import axios from "axios";
 import { useRouter, useRoute } from "vue-router";
 
@@ -11,78 +10,65 @@ export default {
     Header,
     Footer,
   },
-  setup() {
-    const firstName = ref("");
-    const email = ref("");
-    const form = ref(null);
-    const router = useRouter();
-    const route = useRoute();
-    const required = (v) => !!v || "필수 입력 항목입니다.";
-    const emailRule = (v) =>
-      !v ||
-      /^(?:[a-zA-Z0-9_'^&amp;/+-])+(?:\.(?:[a-zA-Z0-9_'^&amp;/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(
-        v,
-      ) ||
-      "유효한 이메일을 입력하세요";
-    const firstNameRules = [required];
-    const emailRules = [required, emailRule];
-
-    // 데이터 조회 및 채우기
-    const fetchHello = (id) => {
-      axios({
-        method: "post",
-        url: "http://localhost:8080/api/helloes/search",
-        data: {
-          helloId: id,
-        },
-      })
-        .then((res) => {
-          const hello = res.data._embedded.helloes?.[0];
-          if (hello) {
-            firstName.value = hello.name;
-            email.value = hello.email;
-          }
-        })
-        .catch((e) => {
-          alert("데이터 조회 실패: " + (e.response?.data?.message || e.message));
-        });
+  data() {
+    return {
+      firstName: "",
+      email: "",
+      form: null,
+      firstNameRules: [v => !!v || "필수 입력 항목입니다."],
+      emailRules: [
+        v => !!v || "필수 입력 항목입니다.",
+        v =>
+          !v ||
+          /^(?:[a-zA-Z0-9_'^&amp;/+-])+(?:\.(?:[a-zA-Z0-9_'^&amp;/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(v) ||
+          "유효한 이메일을 입력하세요",
+      ],
+      router: useRouter(),
+      route: useRoute(),
     };
-
-    // onMounted에서 id로 데이터 조회
-    onMounted(() => {
-      const id = route.params.id;
-      if (id) fetchHello(id);
-    });
-
-    const submitForm = () => {
-      if (!form.value) return;
-      form.value.validate().then((result) => {
+  },
+  methods: {
+    submitForm() {
+      if (!this.form) return;
+      this.$refs.form.validate().then((result) => {
         if (!result.valid) return;
         axios({
           method: "put",
-          url: "http://localhost:8080/api/helloes",
+          url: `http://localhost:8080/api/helloes/${this.route.params.id}`,
           data: {
-            name: firstName.value,
-            email: email.value,
+            name: this.firstName,
+            email: this.email,
           },
         })
           .then(() => {
-            router.push("/hello");
+            this.router.push("/hello");
           })
           .catch((e) => {
             alert("수정 실패: " + (e.response?.data?.message || e.message));
           });
       });
-    };
-
-    return {
-      firstName,
-      email,
-      form,
-      firstNameRules,
-      emailRules,
-      submitForm,
-    };
+    },
+  },
+  mounted() {
+    const id = this.route.params.id;
+    if (!id) return;
+    axios({
+      method: "post",
+      url: "http://localhost:8080/api/helloes/search",
+      data: {
+        helloId: id,
+      },
+    })
+      .then((res) => {
+        const hello = res.data._embedded.helloes?.[0];
+        if (hello) {
+          this.firstName = hello.name;
+          this.email = hello.email;
+        }
+      })
+      .catch((e) => {
+        alert("데이터 조회 실패: " + (e.response?.data?.message || e.message));
+      });
   },
 };
 </script>
@@ -127,7 +113,7 @@ export default {
               clearable
               type="email"
             ></v-text-field>
-            <v-row class="mt-2" dense>
+            <v-row class="mt-2" density="comfortable">
               <v-col cols="6" class="pr-1">
                 <v-btn
                   type="submit"

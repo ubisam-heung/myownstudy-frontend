@@ -32,10 +32,10 @@ export default {
   },
   methods: {
     goAdd() {
-      router.push("/helloAdd");
+      this.router.push("/helloAdd");
     },
     goEdit(event, row) {
-      router.push(`/helloEdit/${row.item.id}`);
+      this.router.push(`/helloEdit/${row.item.id}`);
     },
   },
   mounted() {

@@ -39,7 +39,7 @@ export default {
           },
         })
           .then(() => {
-            router.push("/hello");
+            this.router.push("/hello");
           })
           .catch((e) => {
             alert("추가 실패: " + (e.response?.data?.message || e.message));
