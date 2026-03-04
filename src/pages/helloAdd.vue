@@ -1,9 +1,9 @@
 <script>
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
-import { ref } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+import { ref } from "vue";
 
 export default {
   name: "HelloAdd",
@@ -11,50 +11,44 @@ export default {
     Header,
     Footer,
   },
-  setup() {
-    const firstName = ref("");
-    const email = ref("");
-    const form = ref(null);
-    const router = useRouter();
-    const required = (v) => !!v || "필수 입력 항목입니다.";
-    const emailRule = (v) =>
-      !v ||
-      /^(?:[a-zA-Z0-9_'^&amp;/+-])+(?:\.(?:[a-zA-Z0-9_'^&amp;/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(
-        v,
-      ) ||
-      "유효한 이메일을 입력하세요";
-    const firstNameRules = [required];
-    const emailRules = [required, emailRule];
-
-    const submitForm = () => {
-      if (!form.value) return;
-      form.value.validate().then((result) => {
+  data() {
+    return {
+      firstName: "",
+      email: "",
+      firstNameRules: [v => !!v || "필수 입력 항목입니다."],
+      emailRules: [
+        v => !!v || "필수 입력 항목입니다.",
+        v =>
+          !v ||
+          /^(?:[a-zA-Z0-9_'^&amp;/+-])+(?:\.(?:[a-zA-Z0-9_'^&amp;/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(v) ||
+          "유효한 이메일을 입력하세요",
+      ],
+      router: useRouter(),
+    };
+  },
+  methods: {
+    createHello() {
+      if (!this.$refs.form) return;
+      this.$refs.form.validate().then((result) => {
         if (!result.valid) return;
         axios({
           method: "post",
           url: "http://localhost:8080/api/helloes",
           data: {
-            name: firstName.value,
-            email: email.value,
+            name: this.firstName,
+            email: this.email,
           },
         })
           .then(() => {
             this.router.push("/hello");
           })
-          .catch((e) => {
-            alert("추가 실패: " + (e.response?.data?.message || e.message));
+          .catch((error) => {
+            alert(
+              "추가 실패: " + (error.response?.data?.message || error.message)
+            );
           });
       });
-    };
-
-    return {
-      firstName,
-      email,
-      form,
-      firstNameRules,
-      emailRules,
-      submitForm,
-    };
+    },
   },
 };
 </script>
@@ -76,7 +70,7 @@ export default {
           <v-form
             ref="form"
             validation-mode="eager"
-            @submit.prevent="submitForm"
+            @submit.prevent="createHello"
           >
             <v-text-field
               v-model="firstName"
@@ -105,8 +99,8 @@ export default {
               size="large"
               block
               elevation="2"
+              prepend-icon="mdi-plus"
             >
-              <v-icon start>mdi-plus</v-icon>
               추가
             </v-btn>
           </v-form>

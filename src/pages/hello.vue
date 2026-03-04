@@ -4,7 +4,6 @@ import { ref } from "vue";
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 import { useRouter } from "vue-router";
-import router from "@/router";
 
 export default {
   name: "Hello",
@@ -26,7 +25,7 @@ export default {
         { key: "email", title: "이메일" },
       ]),
       search: ref(""),
-      sortBy: ref([{ key: 'id', order: 'asc' }]),
+      sortBy: ref([{ key: "id", order: "asc" }]),
       router: useRouter(),
     };
   },

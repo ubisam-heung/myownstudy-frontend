@@ -14,13 +14,14 @@ export default {
     return {
       firstName: "",
       email: "",
-      form: null,
-      firstNameRules: [v => !!v || "필수 입력 항목입니다."],
+      firstNameRules: [(v) => !!v || "필수 입력 항목입니다."],
       emailRules: [
-        v => !!v || "필수 입력 항목입니다.",
-        v =>
+        (v) => !!v || "필수 입력 항목입니다.",
+        (v) =>
           !v ||
-          /^(?:[a-zA-Z0-9_'^&amp;/+-])+(?:\.(?:[a-zA-Z0-9_'^&amp;/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(v) ||
+          /^(?:[a-zA-Z0-9_'^&amp;/+-])+(?:\.(?:[a-zA-Z0-9_'^&amp;/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(
+            v,
+          ) ||
           "유효한 이메일을 입력하세요",
       ],
       router: useRouter(),
@@ -28,8 +29,8 @@ export default {
     };
   },
   methods: {
-    submitForm() {
-      if (!this.form) return;
+    saveHello() {
+      if (!this.$refs.form) return;
       this.$refs.form.validate().then((result) => {
         if (!result.valid) return;
         axios({
@@ -43,13 +44,28 @@ export default {
           .then(() => {
             this.router.push("/hello");
           })
-          .catch((e) => {
-            alert("수정 실패: " + (e.response?.data?.message || e.message));
+          .catch((error) => {
+            alert(
+              "수정 실패: " + (error.response?.data?.message || error.message),
+            );
           });
       });
     },
+    deleteHello() {
+      axios({
+        method: "delete",
+        url: `http://localhost:8080/api/helloes/${this.route.params.id}`,
+      })
+        .then(() => {
+          this.router.push("/hello");
+        })
+        .catch((e) => {
+          alert("삭제 실패: " + (e.response?.data?.message || e.message));
+        });
+    },
   },
   mounted() {
+    console.log("Hello mounted");
     const id = this.route.params.id;
     if (!id) return;
     axios({
@@ -66,8 +82,11 @@ export default {
           this.email = hello.email;
         }
       })
-      .catch((e) => {
-        alert("데이터 조회 실패: " + (e.response?.data?.message || e.message));
+      .catch((error) => {
+        alert(
+          "데이터 조회 실패: " +
+            (error.response?.data?.message || error.message),
+        );
       });
   },
 };
@@ -90,7 +109,7 @@ export default {
           <v-form
             ref="form"
             validation-mode="eager"
-            @submit.prevent="submitForm"
+            @submit.prevent="saveHello"
           >
             <v-text-field
               v-model="firstName"
@@ -121,8 +140,8 @@ export default {
                   size="large"
                   block
                   elevation="2"
+                  prepend-icon="mdi-pencil"
                 >
-                  <v-icon start>mdi-pencil</v-icon>
                   수정
                 </v-btn>
               </v-col>
@@ -132,8 +151,9 @@ export default {
                   size="large"
                   block
                   elevation="2"
+                  @click="deleteHello"
+                  prepend-icon="mdi-delete"
                 >
-                  <v-icon start>mdi-delete</v-icon>
                   삭제
                 </v-btn>
               </v-col>
