@@ -27,11 +27,6 @@
           { key: 'email', title: '이메일' },
         ]),
         search: ref(''),
-        page: ref(1),
-        itemsPerPage: ref(5),
-        pageCount: computed(() => {
-          return Math.ceil(posts.value.length / itemsPerPage.value)
-        }),
       }
     },
     methods: {
@@ -86,14 +81,6 @@
             :items="posts"
             :search="search"
           >
-            <template v-slot:bottom>
-              <div class="text-center pt-2">
-                <v-pagination
-                  v-model="page"
-                  :length="pageCount"
-                ></v-pagination>
-              </div>
-            </template>
           </v-data-table>
         </v-card>
       </v-container>
