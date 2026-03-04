@@ -3,7 +3,6 @@ import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
-import { ref } from "vue";
 
 export default {
   name: "HelloAdd",
