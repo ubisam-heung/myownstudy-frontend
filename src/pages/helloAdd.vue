@@ -12,9 +12,9 @@ export default {
   },
   data() {
     return {
-      firstName: "",
+      name: "",
       email: "",
-      firstNameRules: [v => !!v || "필수 입력 항목입니다."],
+      nameRules: [v => !!v || "필수 입력 항목입니다."],
       emailRules: [
         v => !!v || "필수 입력 항목입니다.",
         v =>
@@ -34,7 +34,7 @@ export default {
           method: "post",
           url: "http://localhost:8080/api/helloes",
           data: {
-            name: this.firstName,
+            name: this.name,
             email: this.email,
           },
         })
@@ -72,8 +72,8 @@ export default {
             @submit.prevent="createHello"
           >
             <v-text-field
-              v-model="firstName"
-              :rules="firstNameRules"
+              v-model="name"
+              :rules="nameRules"
               label="이름"
               placeholder="이름을 입력하세요"
               prepend-inner-icon="mdi-account"
