@@ -1,18 +1,18 @@
-
 <script>
   import axios from 'axios'
-  import { computed, ref } from 'vue'
+  import { ref } from 'vue'
+  import Header from '@/components/Header.vue'
+  import Footer from '@/components/Footer.vue'
   
   export default {
     
     name: 'Hello',
+    components: {
+      Header,
+      Footer
+    },
     data () {
       return {
-          icons: [
-            { icon: 'mdi-microphone-message', url: 'https://www.notion.so/4-3181dd99f25d80c69513dc2934fabece#3181dd99f25d809cbaedc66d8b7df154' },
-            { icon: 'mdi-wifi', url: 'https://ubisam.hanbiro.net/ngw/app/#/' },
-            { icon: 'mdi-github', url: 'https://github.com/ubisam-heung' },
-          ],
           posts: ref([
             { id: 1, name: '', email: '' },
           ]),
@@ -28,11 +28,6 @@
         ]),
         search: ref(''),
       }
-    },
-    methods: {
-      goHome () {
-        this.$router.push('/')
-      },
     },
     mounted () {
       console.log('Hello mounted')
@@ -58,16 +53,22 @@
 </script>
 <template>
   <v-app>
-    <v-app-bar color="green-darken-1" density="comfortable" flat>
-      <v-app-bar-title style="cursor: pointer;" @click="goHome">유비샘-조흥재연구원</v-app-bar-title>
-      <v-spacer />
-    </v-app-bar>
+    <Header />
     <v-main>
       <v-container class="py-8">
         <v-card
           title="유저목록"
           flat
         >
+          <template v-slot:append>
+            <v-btn
+              color="blue"
+              prepend-icon="mdi-plus"
+            >
+              추가
+            </v-btn>
+          </template>
+
           <template v-slot:text>
             <v-text-field
               v-model="search"
@@ -91,28 +92,7 @@
         </v-card>
       </v-container>
     </v-main>
-    <v-footer class="d-flex flex-column" color="teal" rounded="lg">
-      <div class="d-flex w-100 align-center px-4 py-2">
-        <strong>(주) 유비샘-조흥재연구원</strong>
-
-        <div class="d-flex ga-2 ms-auto">
-          <v-btn
-            v-for="item in icons"
-            :key="item.icon"
-            :icon="item.icon"
-            size="small"
-            variant="plain"
-            :href="item.url"
-            target="_blank"
-            rel="noopener"
-          ></v-btn>
-        </div>
-      </div>
-
-      <div class="px-4 py-2 bg-surface-variant text-center w-100 rounded-lg">
-        <strong>(주) 유비샘</strong>
-      </div>
-    </v-footer>
+    <Footer />
   </v-app>
 </template>
 
