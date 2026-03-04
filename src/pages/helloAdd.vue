@@ -9,11 +9,13 @@ export default {
     Footer
   },
   data() {
+    const required = v => !!v || '필수 입력 항목입니다.'
+    const emailRule = v => !v || /^(?:[a-zA-Z0-9_'^&amp;/+-])+(?:\.(?:[a-zA-Z0-9_'^&amp;/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(v) || '유효한 이메일을 입력하세요'
     return {
       firstName: '',
       email: '',
-      firstNameRules: [v => !!v || '이름을 입력하세요'],
-      emailRules: [v => !!v || '이메일을 입력하세요', v => /.+@.+\..+/.test(v) || '유효한 이메일을 입력하세요'],
+      firstNameRules: [required],
+      emailRules: [required, emailRule],
     }
   }
 }
