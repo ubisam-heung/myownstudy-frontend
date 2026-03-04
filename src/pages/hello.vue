@@ -29,6 +29,11 @@
         search: ref(''),
       }
     },
+    methods: {
+      goAdd() {
+        this.$router.push('/helloAdd')
+      }
+    },
     mounted () {
       console.log('Hello mounted')
       axios({
@@ -64,6 +69,7 @@
             <v-btn
               color="blue"
               prepend-icon="mdi-plus"
+              @click="goAdd"
             >
               추가
             </v-btn>
