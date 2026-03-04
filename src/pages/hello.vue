@@ -3,6 +3,8 @@ import axios from "axios";
 import { ref } from "vue";
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
+import { useRouter } from "vue-router";
+import router from "@/router";
 
 export default {
   name: "Hello",
@@ -12,7 +14,7 @@ export default {
   },
   data() {
     return {
-      posts: ref([{ id: 1, name: "", email: "" }]),
+      posts: ref([]),
       headers: ref([
         {
           align: "start",
@@ -24,11 +26,16 @@ export default {
         { key: "email", title: "이메일" },
       ]),
       search: ref(""),
+      sortBy: ref([{ key: 'id', order: 'asc' }]),
+      router: useRouter(),
     };
   },
   methods: {
     goAdd() {
-      this.$router.push("/helloAdd");
+      router.push("/helloAdd");
+    },
+    goEdit(event, row) {
+      router.push(`/helloEdit/${row.item.id}`);
     },
   },
   mounted() {
@@ -80,9 +87,11 @@ export default {
             :headers="headers"
             :items="posts"
             :search="search"
+            :sort-by="sortBy"
             :items-per-page="5"
             :items-per-page-options="[5, 10, 15, 20]"
             items-per-page-text="페이지당:"
+            @click:row="goEdit"
           >
           </v-data-table>
         </v-card>

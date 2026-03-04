@@ -44,6 +44,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/helloEdit': RouteRecordInfo<
+      '/helloEdit',
+      '/helloEdit',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/world/hello': RouteRecordInfo<
       '/world/hello',
       '/world/hello',
@@ -79,6 +86,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/helloAdd.vue': {
       routes:
         | '/helloAdd'
+      views:
+        | never
+    }
+    'src/pages/helloEdit.vue': {
+      routes:
+        | '/helloEdit'
       views:
         | never
     }
