@@ -46,13 +46,13 @@
           size: 1000
         }
       })
-        .then(res => {
-          console.log(res.data._embedded)
-          this.posts = res.data._embedded.helloes
-        })
-        .catch(error => {
-          console.error('목록 가져오기 실패:', error)
-        })
+      .then(res => {
+        console.log(res.data._embedded)
+        this.posts = res.data._embedded.helloes
+      })
+      .catch(error => {
+        console.error('목록 가져오기 실패:', error)
+      })
     },
   }
 </script>

@@ -1,6 +1,9 @@
 <script>
   import Header from '@/components/Header.vue'
   import Footer from '@/components/Footer.vue'
+  import { ref } from 'vue'
+  import axios from 'axios'
+  import { useRouter } from 'vue-router'
 
 export default {
   name: 'HelloAdd',
@@ -8,14 +11,44 @@ export default {
     Header,
     Footer
   },
-  data() {
+  setup() {
+    const firstName = ref('')
+    const email = ref('')
+    const form = ref(null)
+    const router = useRouter()
     const required = v => !!v || '필수 입력 항목입니다.'
     const emailRule = v => !v || /^(?:[a-zA-Z0-9_'^&amp;/+-])+(?:\.(?:[a-zA-Z0-9_'^&amp;/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(v) || '유효한 이메일을 입력하세요'
+    const firstNameRules = [required]
+    const emailRules = [required, emailRule]
+
+    const submitForm = () => {
+      if (!form.value) return
+      form.value.validate().then(result => {
+        if (!result.valid) return
+        axios({
+          method: 'post',
+          url: 'http://localhost:8080/api/helloes',
+          data: {
+            name: firstName.value,
+            email: email.value
+          }
+        })
+          .then(() => {
+            router.push('/hello')
+          })
+          .catch(e => {
+            alert('추가 실패: ' + (e.response?.data?.message || e.message))
+          })
+      })
+    }
+
     return {
-      firstName: '',
-      email: '',
-      firstNameRules: [required],
-      emailRules: [required, emailRule],
+      firstName,
+      email,
+      form,
+      firstNameRules,
+      emailRules,
+      submitForm
     }
   }
 }
@@ -30,7 +63,7 @@ export default {
             <v-icon color="primary" size="32" class="me-2">mdi-account-plus</v-icon>
             유저 추가
           </v-card-title>
-          <v-form fast-fail @submit.prevent>
+          <v-form ref="form" validation-mode="eager" @submit.prevent="submitForm">
             <v-text-field
               v-model="firstName"
               :rules="firstNameRules"
