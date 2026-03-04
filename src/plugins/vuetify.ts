@@ -6,6 +6,7 @@
 
 // Composables
 import { createVuetify } from 'vuetify'
+import { ko } from 'vuetify/locale'
 // Styles
 import '@mdi/font/css/materialdesignicons.css'
 
@@ -16,4 +17,8 @@ export default createVuetify({
   theme: {
     defaultTheme: 'system',
   },
+  locale: {
+    locale: 'ko',
+    messages: { ko }
+  }
 })

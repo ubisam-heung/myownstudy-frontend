@@ -42,6 +42,9 @@
         data: {
           keyword: '',
         },
+        params: {
+          size: 1000
+        }
       })
         .then(res => {
           console.log(res.data._embedded)
@@ -80,6 +83,9 @@
             :headers="headers"
             :items="posts"
             :search="search"
+            :items-per-page="5"
+            :items-per-page-options="[5, 10, 15, 20]"
+            items-per-page-text="페이지당:"
           >
           </v-data-table>
         </v-card>
