@@ -45,6 +45,9 @@ export default {
     };
   },
   methods: {
+    //////////////////
+    // 테이블 불러오기
+    //////////////////
     fetchList() {
       axios({
         method: "post",
@@ -63,16 +66,25 @@ export default {
           console.error("목록 가져오기 실패:", error);
         });
     },
+    //////////////////
+    // 유저 추가 다이얼로그 열기
+    //////////////////
     openAddDialog() {
       this.dialogMode = "add";
       this.form = { id: null, name: "", email: "" };
       this.dialog = true;
     },
+    //////////////////
+    // 유저 수정 다이얼로그 열기
+    //////////////////
     openEditDialog(item) {
       this.dialogMode = "edit";
       this.form = { id: item.id, name: item.name, email: item.email };
       this.dialog = true;
     },
+    //////////////////
+    // 유저 추가/수정 저장
+    //////////////////
     saveHello() {
       if (!this.$refs.form) return;
       this.$refs.form.validate().then((result) => {
@@ -116,6 +128,9 @@ export default {
         }
       });
     },
+    //////////////////
+    // 유저 삭제
+    //////////////////
     deleteHello(item) {
       if (!item) return;
       axios({
@@ -130,6 +145,9 @@ export default {
         });
     },
   },
+  //////////////////
+  // 컴포넌트 마운트 시 데이터 불러오기
+  //////////////////
   mounted() {
     this.fetchList();
   },
@@ -141,12 +159,14 @@ export default {
     <v-main>
       <v-container class="py-8">
         <v-card title="유저목록" flat>
+          <!-- 추가버튼 -->
           <template v-slot:append>
             <v-btn color="blue" prepend-icon="mdi-plus" @click="openAddDialog">
               추가
             </v-btn>
           </template>
 
+          <!-- 검색바 -->
           <template v-slot:text>
             <v-text-field
               v-model="search"
@@ -158,6 +178,7 @@ export default {
             ></v-text-field>
           </template>
 
+          <!-- 유저 테이블 -->
           <v-data-table
             :headers="headers"
             :items="posts"
@@ -184,7 +205,7 @@ export default {
           </v-data-table>
         </v-card>
 
-        <!-- 유저 추가/수정 다일로그 -->
+        <!-- 유저 추가/수정 다이얼로그 -->
         <v-dialog v-model="dialog" max-width="450">
           <v-card elevation="8" class="pa-6">
             <v-card-title class="d-flex align-center justify-center text-h5 mb-4" style="position:relative;">
