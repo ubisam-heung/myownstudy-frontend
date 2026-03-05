@@ -220,7 +220,7 @@ export default {
         </v-card>
 
         <!-- 유저 추가/수정 다이얼로그 -->
-        <v-dialog v-model="dialog" max-width="450">
+        <v-dialog persistent v-model="dialog" max-width="450">
           <v-card elevation="8" class="pa-6">
             <v-card-title
               class="d-flex align-center justify-center text-h5 mb-4"
