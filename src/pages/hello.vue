@@ -32,12 +32,14 @@ export default {
         name: "",
         email: "",
       },
-      nameRules: [v => !!v || "필수 입력 항목입니다."],
+      nameRules: [(v) => !!v || "필수 입력 항목입니다."],
       emailRules: [
-        v => !!v || "필수 입력 항목입니다.",
-        v =>
+        (v) => !!v || "필수 입력 항목입니다.",
+        (v) =>
           !v ||
-          /^(?:[a-zA-Z0-9_'^&/+-])+(?:\.(?:[a-zA-Z0-9_'^&/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(v) ||
+          /^(?:[a-zA-Z0-9_'^&/+-])+(?:\.(?:[a-zA-Z0-9_'^&/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(
+            v,
+          ) ||
           "유효한 이메일을 입력하세요",
       ],
       deleteDialog: false,
@@ -104,7 +106,8 @@ export default {
             })
             .catch((error) => {
               alert(
-                "추가 실패: " + (error.response?.data?.message || error.message)
+                "추가 실패: " +
+                  (error.response?.data?.message || error.message),
               );
             });
         } else if (this.dialogMode === "edit") {
@@ -122,7 +125,8 @@ export default {
             })
             .catch((error) => {
               alert(
-                "수정 실패: " + (error.response?.data?.message || error.message)
+                "수정 실패: " +
+                  (error.response?.data?.message || error.message),
               );
             });
         }
@@ -191,12 +195,22 @@ export default {
             <template #item.actions="{ item }">
               <v-row align="center" justify="end" no-gutters>
                 <v-col class="d-flex" cols="auto">
-                  <v-btn icon color="primary" @click.stop="openEditDialog(item)" density="compact">
+                  <v-btn
+                    icon
+                    color="primary"
+                    @click.stop="openEditDialog(item)"
+                    density="compact"
+                  >
                     <v-icon size="18">mdi-pencil</v-icon>
                   </v-btn>
                 </v-col>
                 <v-col class="d-flex" cols="auto">
-                  <v-btn icon color="error" @click.stop="deleteHello(item)" density="compact">
+                  <v-btn
+                    icon
+                    color="error"
+                    @click.stop="deleteHello(item)"
+                    density="compact"
+                  >
                     <v-icon size="18">mdi-delete</v-icon>
                   </v-btn>
                 </v-col>
@@ -208,16 +222,36 @@ export default {
         <!-- 유저 추가/수정 다이얼로그 -->
         <v-dialog v-model="dialog" max-width="450">
           <v-card elevation="8" class="pa-6">
-            <v-card-title class="d-flex align-center justify-center text-h5 mb-4" style="position:relative;">
+            <v-card-title
+              class="d-flex align-center justify-center text-h5 mb-4"
+              style="position: relative"
+            >
               <v-icon color="primary" size="32" class="me-2">
-                {{ dialogMode === 'add' ? 'mdi-account-plus' : 'mdi-pencil' }}
+                {{ dialogMode === "add" ? "mdi-account-plus" : "mdi-pencil" }}
               </v-icon>
-              {{ dialogMode === 'add' ? '유저 추가' : '유저 수정' }}
-              <v-btn icon size="x-small" elevation="0" style="position:absolute; right:0; top:0; min-width:28px; height:28px; box-shadow:none;" @click="dialog = false">
+              {{ dialogMode === "add" ? "유저 추가" : "유저 수정" }}
+              <v-btn
+                icon
+                size="x-small"
+                elevation="0"
+                style="
+                  position: absolute;
+                  right: 0;
+                  top: 0;
+                  min-width: 28px;
+                  height: 28px;
+                  box-shadow: none;
+                "
+                @click="dialog = false"
+              >
                 <v-icon size="16">mdi-close</v-icon>
               </v-btn>
             </v-card-title>
-            <v-form ref="form" validation-mode="eager" @submit.prevent="saveHello">
+            <v-form
+              ref="form"
+              validation-mode="eager"
+              @submit.prevent="saveHello"
+            >
               <v-text-field
                 v-model="form.name"
                 :rules="nameRules"
@@ -247,9 +281,11 @@ export default {
                     size="large"
                     block
                     elevation="2"
-                    :prepend-icon="dialogMode === 'add' ? 'mdi-plus' : 'mdi-pencil'"
+                    :prepend-icon="
+                      dialogMode === 'add' ? 'mdi-plus' : 'mdi-pencil'
+                    "
                   >
-                    {{ dialogMode === 'add' ? '추가' : '수정' }}
+                    {{ dialogMode === "add" ? "추가" : "수정" }}
                   </v-btn>
                 </v-col>
               </v-row>
