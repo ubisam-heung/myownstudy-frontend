@@ -193,7 +193,7 @@ export default {
             items-per-page-text="페이지당:"
           >
             <template #item.actions="{ item }">
-              <v-row align="center" justify="end" no-gutters>
+              <v-row align="center" justify="end" density="compact">
                 <v-col class="d-flex" cols="auto">
                   <v-btn
                     icon
