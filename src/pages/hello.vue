@@ -25,6 +25,11 @@ export default {
       ],
       search: "",
       sortBy: [{ key: "id", order: "asc" }],
+      sortField: "id", // 서버 정렬 필드
+      sortOrder: "asc", // asc/desc
+      page: 1, // 현재 페이지
+      editedRowId: null, // 최근 수정된 행 id
+      editedRowTimer: null, // 색상 원복 타이머
       dialog: false,
       dialogMode: "add",
       form: {
@@ -51,6 +56,7 @@ export default {
     // 테이블 불러오기
     //////////////////
     fetchList() {
+      // 서버 정렬 파라미터 적용
       axios({
         method: "post",
         url: "http://localhost:8080/api/helloes/search",
@@ -59,6 +65,7 @@ export default {
         },
         params: {
           size: 1000,
+          sort: this.sortField + (this.sortOrder === 'desc' ? ',desc' : ''),
         },
       })
         .then((res) => {
@@ -100,8 +107,10 @@ export default {
               email: this.form.email,
             },
           })
-            .then(() => {
+            .then((res) => {
               this.dialog = false;
+              // 1페이지 맨 위로 추가
+              this.page = 1;
               this.fetchList();
             })
             .catch((error) => {
@@ -121,7 +130,13 @@ export default {
           })
             .then(() => {
               this.dialog = false;
+              this.editedRowId = this.form.id; // 수정된 행 id 저장
               this.fetchList();
+              // 3초 후 색상 원복
+              if (this.editedRowTimer) clearTimeout(this.editedRowTimer);
+              this.editedRowTimer = setTimeout(() => {
+                this.editedRowId = null;
+              }, 3000);
             })
             .catch((error) => {
               alert(
@@ -135,18 +150,30 @@ export default {
     //////////////////
     // 유저 삭제
     //////////////////
-    deleteHello(item) {
-      if (!item) return;
+    // 삭제 다이얼로그 열기
+    openDeleteDialog(item) {
+      this.deleteTarget = item;
+      this.deleteDialog = true;
+    },
+    // 실제 삭제
+    confirmDelete() {
+      if (!this.deleteTarget) return;
       axios({
         method: "delete",
-        url: `http://localhost:8080/api/helloes/${item.id}`,
+        url: `http://localhost:8080/api/helloes/${this.deleteTarget.id}`,
       })
         .then(() => {
           this.fetchList();
+          this.deleteDialog = false;
+          this.deleteTarget = null;
         })
         .catch((e) => {
           alert("삭제 실패: " + (e.response?.data?.message || e.message));
         });
+    },
+    cancelDelete() {
+      this.deleteDialog = false;
+      this.deleteTarget = null;
     },
   },
   //////////////////
@@ -154,6 +181,157 @@ export default {
   //////////////////
   mounted() {
     this.fetchList();
+    // 테이블 외 클릭 시 수정 강조 해제
+    document.addEventListener('click', this.clearEditedRow, true);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.clearEditedRow, true);
+  },
+  watch: {
+    sortBy(val) {
+      // Vuetify sortBy 구조: [{key, order}]
+      if (val && val.length > 0) {
+        this.sortField = val[0].key;
+        this.sortOrder = val[0].order;
+        this.fetchList();
+      }
+    },
+    page() {
+      // 페이지 변경 시 fetchList 필요시 구현
+    }
+  },
+  methods: {
+    //////////////////
+    // 테이블 불러오기
+    //////////////////
+    fetchList() {
+      // 서버 정렬 파라미터 적용
+      axios({
+        method: "post",
+        url: "http://localhost:8080/api/helloes/search",
+        data: {
+          keyword: "",
+        },
+        params: {
+          size: 1000,
+          sort: this.sortField + (this.sortOrder === 'desc' ? ',desc' : ''),
+        },
+      })
+        .then((res) => {
+          this.posts = res.data._embedded.helloes;
+        })
+        .catch((error) => {
+          console.error("목록 가져오기 실패:", error);
+        });
+    },
+    //////////////////
+    // 유저 추가 다이얼로그 열기
+    //////////////////
+    openAddDialog() {
+      this.dialogMode = "add";
+      this.form = { id: null, name: "", email: "" };
+      this.dialog = true;
+    },
+    //////////////////
+    // 유저 수정 다이얼로그 열기
+    //////////////////
+    openEditDialog(item) {
+      this.dialogMode = "edit";
+      this.form = { id: item.id, name: item.name, email: item.email };
+      this.dialog = true;
+    },
+    //////////////////
+    // 유저 추가/수정 저장
+    //////////////////
+    saveHello() {
+      if (!this.$refs.form) return;
+      this.$refs.form.validate().then((result) => {
+        if (!result.valid) return;
+        if (this.dialogMode === "add") {
+          axios({
+            method: "post",
+            url: "http://localhost:8080/api/helloes",
+            data: {
+              name: this.form.name,
+              email: this.form.email,
+            },
+          })
+            .then((res) => {
+              this.dialog = false;
+              // 1페이지 맨 위로 추가
+              this.page = 1;
+              this.fetchList();
+            })
+            .catch((error) => {
+              alert(
+                "추가 실패: " +
+                  (error.response?.data?.message || error.message),
+              );
+            });
+        } else if (this.dialogMode === "edit") {
+          axios({
+            method: "put",
+            url: `http://localhost:8080/api/helloes/${this.form.id}`,
+            data: {
+              name: this.form.name,
+              email: this.form.email,
+            },
+          })
+            .then(() => {
+              this.dialog = false;
+              this.editedRowId = this.form.id; // 수정된 행 id 저장
+              this.fetchList();
+              // 3초 후 색상 원복
+              if (this.editedRowTimer) clearTimeout(this.editedRowTimer);
+              this.editedRowTimer = setTimeout(() => {
+                this.editedRowId = null;
+              }, 3000);
+            })
+            .catch((error) => {
+              alert(
+                "수정 실패: " +
+                  (error.response?.data?.message || error.message),
+              );
+            });
+        }
+      });
+    },
+    //////////////////
+    // 유저 삭제
+    //////////////////
+    // 삭제 다이얼로그 열기
+    openDeleteDialog(item) {
+      this.deleteTarget = item;
+      this.deleteDialog = true;
+    },
+    // 실제 삭제
+    confirmDelete() {
+      if (!this.deleteTarget) return;
+      axios({
+        method: "delete",
+        url: `http://localhost:8080/api/helloes/${this.deleteTarget.id}`,
+      })
+        .then(() => {
+          this.fetchList();
+          this.deleteDialog = false;
+          this.deleteTarget = null;
+        })
+        .catch((e) => {
+          alert("삭제 실패: " + (e.response?.data?.message || e.message));
+        });
+    },
+    cancelDelete() {
+      this.deleteDialog = false;
+      this.deleteTarget = null;
+    },
+    //////////////////
+    // 수정 강조 해제
+    //////////////////
+    clearEditedRow(e) {
+      // 테이블 내 클릭은 무시
+      if (e && e.target && e.target.closest && e.target.closest('.v-data-table')) return;
+      this.editedRowId = null;
+    },
   },
 };
 </script>
@@ -191,32 +369,36 @@ export default {
             :items-per-page="5"
             :items-per-page-options="[5, 10, 15, 20]"
             items-per-page-text="페이지당:"
+            v-model:page="page"
           >
-            <template #item.actions="{ item }">
-              <v-row align="center" justify="end" density="compact">
-                <v-col class="d-flex" cols="auto">
-                  <v-btn
-                    icon
-                    color="primary"
-                    @click.stop="openEditDialog(item)"
-                    density="compact"
-                  >
+            <template #item="{ item }">
+              <tr :style="item.id === editedRowId ? 'background:#ffe082' : ''">
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.email }}</td>
+                <td align="right">
+                  <v-btn icon color="primary" @click.stop="openEditDialog(item)" density="compact">
                     <v-icon size="18">mdi-pencil</v-icon>
                   </v-btn>
-                </v-col>
-                <v-col class="d-flex" cols="auto">
-                  <v-btn
-                    icon
-                    color="error"
-                    @click.stop="deleteHello(item)"
-                    density="compact"
-                  >
+                  <v-btn icon color="error" @click.stop="openDeleteDialog(item)" density="compact">
                     <v-icon size="18">mdi-delete</v-icon>
                   </v-btn>
-                </v-col>
-              </v-row>
+                </td>
+              </tr>
             </template>
           </v-data-table>
+                <!-- 삭제 다이얼로그 -->
+                <v-dialog v-model="deleteDialog" max-width="350">
+                  <v-card>
+                    <v-card-title class="text-h6">정말 삭제하시겠습니까?</v-card-title>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="grey" text @click="cancelDelete">취소</v-btn>
+                      <v-btn color="red" text @click="confirmDelete">삭제</v-btn>
+                      <v-btn icon @click="cancelDelete" style="position:absolute;right:8px;top:8px"><v-icon>mdi-close</v-icon></v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
         </v-card>
 
         <!-- 유저 추가/수정 다이얼로그 -->

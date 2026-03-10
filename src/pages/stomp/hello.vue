@@ -10,7 +10,7 @@
 
             // const socket = new WebSocket('ws://192.168.0.38:9030/stomp/websocket');
             // const stompClient = stompjs.over(socket);
-            let url = 'ws://192.168.0.38:9030/stomp/websocket';
+            let url = 'ws://localhost:9030/stomp/websocket';
             let ws = stompjs.client(url);
             ws.connect({}, frame => {
                 console.log('Connected :' + frame);
