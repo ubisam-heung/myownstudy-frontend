@@ -24,12 +24,12 @@ export default {
         { key: "actions", title: "수정 / 삭제", sortable: false, align: "end" },
       ],
       search: "",
-      sortBy: [{ key: "id", order: "asc" }],
-      sortField: "id", // 서버 정렬 필드
-      sortOrder: "asc", // asc/desc
-      page: 1, // 현재 페이지
-      editedRowId: null, // 최근 수정된 행 id
-      editedRowTimer: null, // 색상 원복 타이머
+      sortBy: [],
+      sortField: "id", 
+      sortOrder: "asc", 
+      page: 1, 
+      editedRowId: null,
+      editedRowTimer: null, 
       dialog: false,
       dialogMode: "add",
       form: {
@@ -56,7 +56,6 @@ export default {
     // 테이블 불러오기
     //////////////////
     fetchList() {
-      // 서버 정렬 파라미터 적용
       axios({
         method: "post",
         url: "http://localhost:8080/api/helloes/search",
@@ -109,9 +108,12 @@ export default {
           })
             .then((res) => {
               this.dialog = false;
-              // 1페이지 맨 위로 추가
+              if (res.data) {
+                this.posts.unshift(res.data);
+              } else {
+                this.fetchList();
+              }
               this.page = 1;
-              this.fetchList();
             })
             .catch((error) => {
               alert(
@@ -130,9 +132,8 @@ export default {
           })
             .then(() => {
               this.dialog = false;
-              this.editedRowId = this.form.id; // 수정된 행 id 저장
+              this.editedRowId = this.form.id;
               this.fetchList();
-              // 3초 후 색상 원복
               if (this.editedRowTimer) clearTimeout(this.editedRowTimer);
               this.editedRowTimer = setTimeout(() => {
                 this.editedRowId = null;
@@ -150,12 +151,10 @@ export default {
     //////////////////
     // 유저 삭제
     //////////////////
-    // 삭제 다이얼로그 열기
     openDeleteDialog(item) {
       this.deleteTarget = item;
       this.deleteDialog = true;
     },
-    // 실제 삭제
     confirmDelete() {
       if (!this.deleteTarget) return;
       axios({
@@ -181,7 +180,6 @@ export default {
   //////////////////
   mounted() {
     this.fetchList();
-    // 테이블 외 클릭 시 수정 강조 해제
     document.addEventListener('click', this.clearEditedRow, true);
   },
   beforeUnmount() {
@@ -189,7 +187,6 @@ export default {
   },
   watch: {
     sortBy(val) {
-      // Vuetify sortBy 구조: [{key, order}]
       if (val && val.length > 0) {
         this.sortField = val[0].key;
         this.sortOrder = val[0].order;
@@ -197,7 +194,7 @@ export default {
       }
     },
     page() {
-      // 페이지 변경 시 fetchList 필요시 구현
+      this.fetchList();
     }
   },
   methods: {
@@ -205,7 +202,6 @@ export default {
     // 테이블 불러오기
     //////////////////
     fetchList() {
-      // 서버 정렬 파라미터 적용
       axios({
         method: "post",
         url: "http://localhost:8080/api/helloes/search",
