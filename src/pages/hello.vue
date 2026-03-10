@@ -12,6 +12,8 @@ export default {
   data() {
     return {
       posts: [],
+      totalElements: 0,
+      loading: false,
       headers: [
         {
           align: "start",
@@ -25,10 +27,8 @@ export default {
       ],
       search: "",
       sortBy: [],
-      sortField: "id", 
-      sortOrder: "asc", 
       page: 1, 
-      itemsPerPage: 5, // v-data-table의 items-per-page와 연동
+      itemsPerPage: 5,
       editedRowId: null,
       editedRowTimer: null, 
       dialog: false,
@@ -56,23 +56,34 @@ export default {
     //////////////////
     // 테이블 불러오기
     //////////////////
-    fetchList() {
+    fetchList(options) {
+      this.loading = true;
+      const page = options?.page || this.page;
+      const itemsPerPage = options?.itemsPerPage || this.itemsPerPage;
+      const sortBy = options?.sortBy?.[0]
+        ? options.sortBy[0].key + (options.sortBy[0].order === 'desc' ? ',desc' : '')
+        : 'id';
       axios({
         method: "post",
         url: "http://localhost:8080/api/helloes/search",
-        data: {
-          keyword: "",
-        },
+        data: { keyword: "" },
         params: {
-          size: 1000,
-          sort: this.sortField + (this.sortOrder === 'desc' ? ',desc' : ''),
+          page: page - 1,
+          size: itemsPerPage,
+          sort: sortBy,
         },
       })
         .then((res) => {
           this.posts = res.data._embedded.helloes;
+          this.totalElements = res.data.page.totalElements;
+          this.page = page;
+          this.itemsPerPage = itemsPerPage;
         })
         .catch((error) => {
           console.error("목록 가져오기 실패:", error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     //////////////////
@@ -198,23 +209,11 @@ export default {
   // 컴포넌트 마운트 시 데이터 불러오기
   //////////////////
   mounted() {
-    this.fetchList();
+    this.fetchList({ page: this.page, itemsPerPage: this.itemsPerPage });
     document.addEventListener('click', this.clearEditedRow, true);
   },
   beforeUnmount() {
     document.removeEventListener('click', this.clearEditedRow, true);
-  },
-  watch: {
-    sortBy(val) {
-      if (val && val.length > 0) {
-        this.sortField = val[0].key;
-        this.sortOrder = val[0].order;
-        this.fetchList();
-      }
-    },
-    page() {
-      this.fetchList();
-    }
   },
 };
 </script>
@@ -244,14 +243,16 @@ export default {
           </template>
 
           <!-- 유저 테이블 -->
-          <v-data-table
+          <v-data-table-server
             :headers="headers"
             :items="posts"
-            :search="search"
-            :sort-by="sortBy"
+            :items-length="totalElements"
+            :loading="loading"
+            :page="page"
             :items-per-page="itemsPerPage"
             :items-per-page-options="[5, 10, 15, 20]"
             items-per-page-text="페이지당:"
+            @update:options="fetchList"
             v-model:page="page"
             v-model:items-per-page="itemsPerPage"
           >
@@ -270,7 +271,7 @@ export default {
                 </td>
               </tr>
             </template>
-          </v-data-table>
+          </v-data-table-server>
         </v-card>
         <!-- 삭제 다이얼로그 -->
         <v-dialog v-model="deleteDialog" max-width="380">
