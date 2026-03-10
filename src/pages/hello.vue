@@ -28,6 +28,7 @@ export default {
       sortField: "id", 
       sortOrder: "asc", 
       page: 1, 
+      itemsPerPage: 5, // v-data-table의 items-per-page와 연동
       editedRowId: null,
       editedRowTimer: null, 
       dialog: false,
@@ -108,12 +109,30 @@ export default {
           })
             .then((res) => {
               this.dialog = false;
-              if (res.data) {
-                this.posts.unshift(res.data);
-              } else {
-                this.fetchList();
-              }
-              this.page = 1;
+              const newId = res.data?.id;
+              axios({
+                method: "post",
+                url: "http://localhost:8080/api/helloes/search",
+                data: { keyword: "" },
+                params: {
+                  size: 1000,
+                  sort: this.sortField + (this.sortOrder === 'desc' ? ',desc' : ''),
+                },
+              })
+                .then((listRes) => {
+                  this.posts = listRes.data._embedded.helloes;
+                  const idx = this.posts.findIndex((item) => item.id === newId);
+                  const perPage = this.itemsPerPage;
+                  if (idx !== -1) {
+                    this.page = Math.floor(idx / perPage) + 1;
+                  } else {
+                    this.page = 1;
+                  }
+                })
+                .catch(() => {
+                  this.page = 1;
+                  this.fetchList();
+                });
             })
             .catch((error) => {
               alert(
@@ -197,138 +216,6 @@ export default {
       this.fetchList();
     }
   },
-  methods: {
-    //////////////////
-    // 테이블 불러오기
-    //////////////////
-    fetchList() {
-      axios({
-        method: "post",
-        url: "http://localhost:8080/api/helloes/search",
-        data: {
-          keyword: "",
-        },
-        params: {
-          size: 1000,
-          sort: this.sortField + (this.sortOrder === 'desc' ? ',desc' : ''),
-        },
-      })
-        .then((res) => {
-          this.posts = res.data._embedded.helloes;
-        })
-        .catch((error) => {
-          console.error("목록 가져오기 실패:", error);
-        });
-    },
-    //////////////////
-    // 유저 추가 다이얼로그 열기
-    //////////////////
-    openAddDialog() {
-      this.dialogMode = "add";
-      this.form = { id: null, name: "", email: "" };
-      this.dialog = true;
-    },
-    //////////////////
-    // 유저 수정 다이얼로그 열기
-    //////////////////
-    openEditDialog(item) {
-      this.dialogMode = "edit";
-      this.form = { id: item.id, name: item.name, email: item.email };
-      this.dialog = true;
-    },
-    //////////////////
-    // 유저 추가/수정 저장
-    //////////////////
-    saveHello() {
-      if (!this.$refs.form) return;
-      this.$refs.form.validate().then((result) => {
-        if (!result.valid) return;
-        if (this.dialogMode === "add") {
-          axios({
-            method: "post",
-            url: "http://localhost:8080/api/helloes",
-            data: {
-              name: this.form.name,
-              email: this.form.email,
-            },
-          })
-            .then((res) => {
-              this.dialog = false;
-              // 1페이지 맨 위로 추가
-              this.page = 1;
-              this.fetchList();
-            })
-            .catch((error) => {
-              alert(
-                "추가 실패: " +
-                  (error.response?.data?.message || error.message),
-              );
-            });
-        } else if (this.dialogMode === "edit") {
-          axios({
-            method: "put",
-            url: `http://localhost:8080/api/helloes/${this.form.id}`,
-            data: {
-              name: this.form.name,
-              email: this.form.email,
-            },
-          })
-            .then(() => {
-              this.dialog = false;
-              this.editedRowId = this.form.id; // 수정된 행 id 저장
-              this.fetchList();
-              // 3초 후 색상 원복
-              if (this.editedRowTimer) clearTimeout(this.editedRowTimer);
-              this.editedRowTimer = setTimeout(() => {
-                this.editedRowId = null;
-              }, 3000);
-            })
-            .catch((error) => {
-              alert(
-                "수정 실패: " +
-                  (error.response?.data?.message || error.message),
-              );
-            });
-        }
-      });
-    },
-    //////////////////
-    // 유저 삭제
-    //////////////////
-    // 삭제 다이얼로그 열기
-    openDeleteDialog(item) {
-      this.deleteTarget = item;
-      this.deleteDialog = true;
-    },
-    // 실제 삭제
-    confirmDelete() {
-      if (!this.deleteTarget) return;
-      axios({
-        method: "delete",
-        url: `http://localhost:8080/api/helloes/${this.deleteTarget.id}`,
-      })
-        .then(() => {
-          this.fetchList();
-          this.deleteDialog = false;
-          this.deleteTarget = null;
-        })
-        .catch((e) => {
-          alert("삭제 실패: " + (e.response?.data?.message || e.message));
-        });
-    },
-    cancelDelete() {
-      this.deleteDialog = false;
-      this.deleteTarget = null;
-    },
-    //////////////////
-    // 수정 강조 해제
-    //////////////////
-    clearEditedRow(e) {
-      // 테이블 내 클릭은 무시
-      if (e && e.target && e.target.closest && e.target.closest('.v-data-table')) return;
-      this.editedRowId = null;
-    },
-  },
 };
 </script>
 <template>
@@ -362,10 +249,11 @@ export default {
             :items="posts"
             :search="search"
             :sort-by="sortBy"
-            :items-per-page="5"
+            :items-per-page="itemsPerPage"
             :items-per-page-options="[5, 10, 15, 20]"
             items-per-page-text="페이지당:"
             v-model:page="page"
+            v-model:items-per-page="itemsPerPage"
           >
             <template #item="{ item }">
               <tr :style="item.id === editedRowId ? 'background:#ffe082' : ''">
@@ -383,20 +271,29 @@ export default {
               </tr>
             </template>
           </v-data-table>
-                <!-- 삭제 다이얼로그 -->
-                <v-dialog v-model="deleteDialog" max-width="350">
-                  <v-card>
-                    <v-card-title class="text-h6">정말 삭제하시겠습니까?</v-card-title>
-                    <v-card-actions>
-                      <v-spacer></v-spacer>
-                      <v-btn color="grey" text @click="cancelDelete">취소</v-btn>
-                      <v-btn color="red" text @click="confirmDelete">삭제</v-btn>
-                      <v-btn icon @click="cancelDelete" style="position:absolute;right:8px;top:8px"><v-icon>mdi-close</v-icon></v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
         </v-card>
-
+        <!-- 삭제 다이얼로그 -->
+        <v-dialog v-model="deleteDialog" max-width="380">
+          <v-card class="pa-4" elevation="10" style="border-radius: 18px;">
+            <v-card-title class="d-flex align-center text-h6 mb-2" style="position:relative;justify-content:flex-start;gap:8px;">
+              <v-icon color="red" size="30">mdi-alert-circle</v-icon>
+              <span>정말 삭제하시겠습니까?</span>
+              <v-btn icon size="small" elevation="0" style="position:absolute;right:8px;top:8px;box-shadow:none;" @click="cancelDelete">
+                <v-icon size="18">mdi-close</v-icon>
+              </v-btn>
+            </v-card-title>
+            <v-card-text class="text-center mb-2" style="color:#b71c1c;font-size:1.08rem; white-space:pre-line;">
+              이 작업은 되돌릴 수 없습니다.<br>
+              선택한 유저가 영구적으로 삭제됩니다.
+            </v-card-text>
+            <v-card-actions class="justify-end mt-2">
+              <v-btn variant="outlined" color="grey-darken-1" class="me-2" @click="cancelDelete">취소</v-btn>
+              <v-btn color="red-darken-2" variant="flat" @click="confirmDelete">
+                <v-icon start size="18">mdi-delete</v-icon>삭제
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <!-- 유저 추가/수정 다이얼로그 -->
         <v-dialog persistent v-model="dialog" max-width="450">
           <v-card elevation="8" class="pa-6">
